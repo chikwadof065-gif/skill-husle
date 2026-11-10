@@ -30,7 +30,7 @@ export default function HomePage() {
             <div className="max-w-2xl">
               <p className="eyebrow">A better way to work independently</p>
               <h1 className="display-heading mt-5 text-5xl leading-[1.03] sm:text-6xl lg:text-7xl">
-                Good work starts with the right people.
+                Independent work, done better, work an earn with Skill Hustle.
               </h1>
               <p className="mt-6 max-w-xl text-base leading-7 text-muted sm:text-lg sm:leading-8">
                 Find independent talent for your next big idea, or find work
