@@ -1,0 +1,58 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function activeUser() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid))
+          .data.status == "active";
+    }
+
+    function conversationExists(conversationId) {
+      return exists(
+        /databases/$(database)/documents/conversations/$(conversationId)
+      );
+    }
+
+    function isConversationParticipant(conversationId) {
+      return activeUser()
+        && conversationExists(conversationId)
+        && request.auth.uid in get(
+          /databases/$(database)/documents/conversations/$(conversationId)
+        ).data.participantUids;
+    }
+
+    match /authIdentities/{identityId} {
+      allow read, write: if false;
+    }
+
+    match /users/{userId} {
+      allow get: if signedIn() && request.auth.uid == userId;
+      allow list, create, update, delete: if false;
+    }
+
+    match /conversations/{conversationId} {
+      allow get, list: if activeUser()
+        && request.auth.uid in resource.data.participantUids;
+      allow create, update, delete: if false;
+
+      match /messages/{messageId} {
+        allow get, list: if isConversationParticipant(conversationId);
+        allow create, update, delete: if false;
+      }
+
+      match /{subcollection}/{documentId} {
+        allow read, write: if false;
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
